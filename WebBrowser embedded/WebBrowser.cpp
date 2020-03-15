@@ -6,18 +6,6 @@ WebBrowser::WebBrowser(HWND _hWndParent)
 	::SetRect(&rObject, -300, -300, 300, 300);
 	hWndParent = _hWndParent;
 
-	if (CreateBrowser() == FALSE)
-	{
-		return;
-	}
-
-	ShowWindow(GetControlWindow(), SW_SHOW);
-
-	this->Navigate(_T("about:blank"));
-}
-
-bool WebBrowser::CreateBrowser()
-{
 	HRESULT hr;
 	hr = ::OleCreate(CLSID_WebBrowser,
 		IID_IOleObject, OLERENDER_DRAW, 0, this, this,
@@ -28,7 +16,7 @@ bool WebBrowser::CreateBrowser()
 		MessageBox(NULL, _T("Cannot create oleObject CLSID_WebBrowser"),
 			_T("Error"),
 			MB_ICONERROR);
-		return FALSE;
+		return;
 	}
 
 	hr = oleObject->SetClientSite(this);
@@ -43,7 +31,7 @@ bool WebBrowser::CreateBrowser()
 		MessageBox(NULL, _T("oleObject->DoVerb() failed"),
 			_T("Error"),
 			MB_ICONERROR);
-		return FALSE;
+		return;
 	}
 
 	hr = oleObject->QueryInterface(&webBrowser2);
@@ -52,10 +40,12 @@ bool WebBrowser::CreateBrowser()
 		MessageBox(NULL, _T("oleObject->QueryInterface(&webBrowser2) failed"),
 			_T("Error"),
 			MB_ICONERROR);
-		return FALSE;
+		return;
 	}
 
-	return TRUE;
+	ShowWindow(GetControlWindow(), SW_SHOW);
+
+	this->Navigate(_T("about:blank"));
 }
 
 RECT WebBrowser::PixelToHiMetric(const RECT& _rc)

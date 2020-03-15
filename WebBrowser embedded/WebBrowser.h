@@ -16,8 +16,6 @@ public:
 
 	WebBrowser(HWND hWndParent);
 
-	bool CreateBrowser();
-
 	RECT PixelToHiMetric(const RECT& _rc);
 
 	virtual void SetRect(const RECT& _rc);
