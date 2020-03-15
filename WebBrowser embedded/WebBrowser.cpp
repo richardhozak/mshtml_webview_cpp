@@ -6,10 +6,22 @@ WebBrowser::WebBrowser(HWND _hWndParent)
 	::SetRect(&rObject, -300, -300, 300, 300);
 	hWndParent = _hWndParent;
 
+	void *pp_iole_client_site = NULL;
+	this->QueryInterface(IID_IUnknown, &pp_iole_client_site);
+
+	void *pp_storage = NULL;
+	this->QueryInterface(IID_IStorage, &pp_storage);
+
 	HRESULT hr;
-	hr = ::OleCreate(CLSID_WebBrowser,
-		IID_IOleObject, OLERENDER_DRAW, 0, this, this,
-		(void**)&oleObject);
+	hr = ::OleCreate(
+		CLSID_WebBrowser,
+		IID_IOleObject,
+		OLERENDER_DRAW,
+		NULL,
+		NULL,
+		(LPSTORAGE)pp_storage,
+		(void**)&oleObject
+	);
 
 	if (FAILED(hr))
 	{
@@ -19,8 +31,32 @@ WebBrowser::WebBrowser(HWND _hWndParent)
 		return;
 	}
 
-	hr = oleObject->SetClientSite(this);
+	hr = oleObject->SetClientSite((IOleClientSite*)pp_iole_client_site);
+
+	if (FAILED(hr))
+	{
+		MessageBox(NULL, _T("oleObject->SetClientSite() failed"),
+			_T("Error"),
+			MB_ICONERROR);
+		return;
+	}
+
 	hr = OleSetContainedObject(oleObject, TRUE);
+
+	if (FAILED(hr))
+	{
+		MessageBox(NULL, _T("OleSetContainedObject() failed"),
+			_T("Error"),
+			MB_ICONERROR);
+		return;
+	}
+
+	oleObject->QueryInterface(&oleInPlaceObject);
+	oleInPlaceObject->SetObjectRects(&rObject, &rObject);
+
+	HWND hWndControl;
+	oleInPlaceObject->GetWindow(&hWndControl);
+	ShowWindow(hWndControl, SW_SHOW);
 
 	RECT posRect;
 	::SetRect(&posRect, -300, -300, 300, 300);
@@ -34,7 +70,7 @@ WebBrowser::WebBrowser(HWND _hWndParent)
 		return;
 	}
 
-	hr = oleObject->QueryInterface(&webBrowser2);
+	hr = oleObject->QueryInterface((IWebBrowser2**)&webBrowser2);
 	if (FAILED(hr))
 	{
 		MessageBox(NULL, _T("oleObject->QueryInterface(&webBrowser2) failed"),
@@ -43,7 +79,7 @@ WebBrowser::WebBrowser(HWND _hWndParent)
 		return;
 	}
 
-	ShowWindow(GetControlWindow(), SW_SHOW);
+	//ShowWindow(GetControlWindow(), SW_SHOW);
 
 	this->Navigate(_T("about:blank"));
 }
@@ -91,17 +127,17 @@ void WebBrowser::SetRect(const RECT& _rc)
 
 void WebBrowser::GoBack()
 {
-	this->webBrowser2->GoBack();
+	 this->webBrowser2->GoBack();
 }
 
 void WebBrowser::GoForward()
 {
-	this->webBrowser2->GoForward();
+	 this->webBrowser2->GoForward();
 }
 
 void WebBrowser::Refresh()
 {
-	this->webBrowser2->Refresh();
+	 this->webBrowser2->Refresh();
 }
 
 void WebBrowser::Navigate(wstring szUrl)
@@ -118,11 +154,17 @@ HRESULT STDMETHODCALLTYPE WebBrowser::QueryInterface(REFIID riid,
 {
 	if (riid == __uuidof(IUnknown))
 	{
+		OutputDebugString(L"PP OLE CLIENT SITE");
 		(*ppvObject) = static_cast<IOleClientSite*>(this);
 	}
 	else if (riid == __uuidof(IOleInPlaceSite))
 	{
 		(*ppvObject) = static_cast<IOleInPlaceSite*>(this);
+	}
+	else if (riid == __uuidof(IStorage))
+	{
+		OutputDebugString(L"PP STORAGE");
+		(*ppvObject) = static_cast<IStorage*>(this);
 	}
 	else
 	{
@@ -169,12 +211,7 @@ HRESULT STDMETHODCALLTYPE WebBrowser::CanInPlaceActivate(void)
 
 HRESULT STDMETHODCALLTYPE WebBrowser::OnInPlaceActivate(void)
 {
-	OleLockRunning(oleObject, TRUE, FALSE);
-	oleObject->QueryInterface(&oleInPlaceObject);
-	oleInPlaceObject->SetObjectRects(&rObject, &rObject);
-
 	return S_OK;
-
 }
 
 HRESULT STDMETHODCALLTYPE WebBrowser::OnUIActivate(void)
@@ -219,21 +256,8 @@ HRESULT STDMETHODCALLTYPE WebBrowser::OnUIDeactivate(
 	return S_OK;
 }
 
-HWND WebBrowser::GetControlWindow()
-{
-	if(hWndControl != 0)
-		return hWndControl;
-
-	if(oleInPlaceObject == 0)
-		return 0;
-
-	oleInPlaceObject->GetWindow(&hWndControl);
-	return hWndControl;
-}
-
 HRESULT STDMETHODCALLTYPE WebBrowser::OnInPlaceDeactivate(void)
 {
-	hWndControl = 0;
 	oleInPlaceObject = 0;
 
 	return S_OK;

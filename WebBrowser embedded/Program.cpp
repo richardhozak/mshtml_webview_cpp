@@ -148,7 +148,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_SIZE:
-		if (webBrowser1 != 0)
+		/*if (webBrowser1 != 0)
 		{
 			RECT rcClient;
 			GetClientRect(hWndMain, &rcClient);
@@ -160,7 +160,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			rc.bottom = rcClient.bottom;
 			if (webBrowser1 != 0)
 				webBrowser1->SetRect(rc);
-		}
+		}*/
 		break;
 	case WM_DESTROY:
 		ExitProcess(0);

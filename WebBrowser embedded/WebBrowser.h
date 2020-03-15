@@ -68,8 +68,6 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE OnUIDeactivate( 
 		BOOL fUndoable) override;
 
-	virtual HWND GetControlWindow();
-
 	virtual HRESULT STDMETHODCALLTYPE OnInPlaceDeactivate( void) override;
 
 	virtual HRESULT STDMETHODCALLTYPE DiscardUndoState( void) override;
@@ -186,6 +184,4 @@ protected:
 	RECT rObject;
 
 	HWND hWndParent;
-	HWND hWndControl;
-
 };
