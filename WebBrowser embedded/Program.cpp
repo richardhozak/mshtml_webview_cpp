@@ -114,7 +114,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		hWndAddressBar =
 		CreateWindowEx(0, _T("EDIT"),
-					   _T("http://codeproject.com/"),
+					   _T("http://google.com/"),
 					   WS_CHILD | WS_VISIBLE | WS_BORDER,
 					   260, 10,
 					   200, 20,
